@@ -1,0 +1,983 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass[10pt]{beamer}
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+%\usetheme{Cuerna}
+%\usetheme{detlevcm}
+%\usetheme{Epyt}
+%\usetheme{Focus}
+%\usetheme{light}
+%\usetheme{metropolis}
+%\usetheme{Npbt}
+%\usetheme{Phnompenh}
+%\usetheme{SaintPetersburg}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+
+\setbeamertemplate{footline}[page number]
+
+%~/Library/R/3.1/library/rmarkdown/rmd/beamer/default.tex
+
+%\useoutertheme[subsection=false]{blocks}
+
+
+\usefonttheme[onlymath]{serif}
+\setbeamertemplate{headline}[default]
+\setbeamertemplate{navigation symbols}{}
+\mode<beamer>{\setbeamertemplate{blocks}[rounded][shadow=false]}
+\setbeamercovered{transparent}
+\setbeamercolor{block body example}{fg=blue, bg=black!20}
+
+\useoutertheme[subsection=false]{miniframes}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage[utf8]{inputenc}
+\usepackage[main=russian, english]{babel}
+\usepackage[T1,T2A]{fontenc}
+\usepackage[normalem]{ulem}
+
+\newcommand{\norm}{\mathop{\rm norm}\limits}
+\newcommand{\real}{\mathbb{R}}
+
+\newcommand{\ex}{\mathbb{E}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\intset}{\mathrm{int}}
+\newcommand{\softmax}{\mathop{\rm softmax}\limits}
+\newcommand{\lossfunc}{\mathcal{L}'}
+\newcommand{\dd}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\nm}{\mathcal{N}}
+\newcommand{\sle}{\; \Rightarrow \;}
+\newcommand{\indpos}{\mathbf{I}_{d_k}^{+}[i, j]}
+\newcommand{\indneg}{\mathbf{I}_{d_k}^{-}[i, j]}
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[Short title]{Обобщения метрик и основные методы многомерного шкалирования} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Александр Сенин} % Your name
+% \institute[UCLA] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+% {
+% University of California \\ % Your institution for the title page
+% \medskip
+% \textit{john@smith.com} % Your email address
+% }
+\date{11 марта 2020 г.} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+%\begin{frame}
+%\frametitle{Содержание} % Table of contents slide, comment this block out to remove it
+%\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+%\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{Метрики} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+% \subsection{Аксиомы} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Аксиомы метрики}
+Формализуем интуитивные представления о расстоянии.
+\vspace{\baselineskip}
+
+Пусть на некотором множестве $X$ определена функция $\rho: X \times X \to \mathbb{R}$ такая, что $\forall x, y, z \in X$:
+\begin{itemize}
+	\item $\rho(x, y) \geqslant 0$, причем $\rho(x, y) = 0 \Leftrightarrow x = y$
+	\item $\rho(x, y) = \rho(y, x)$
+	\item $\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$
+\end{itemize}
+
+\vspace{\baselineskip}
+Тогда функция $\rho$ называется метрикой.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Применение метрик в анализе данных}
+Метрические методы для решения задач классификации или регрессии (например, kNN)
+
+\vspace{\baselineskip}
+Кластеризация, обнаружение выбросов
+
+\vspace{\baselineskip}
+Понижение размерности, многомерное шкалирование
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Примеры метрик в анализе данных}
+	Расстояние Минковского: $\l_{p}(x, y) = \left( \sum\limits_{i = 1}^{d} |x^{i} - y^{i}|^{p} \right)^{1/p}$
+
+
+	Частные случаи:
+\begin{itemize}
+	\item Евклидово расстояние при $p=2$.
+	\item Расстояние городских кварталов при $p=1$.
+	\item Метрика Чебышева при $p=\infty: \l_{\infty}(x, y) = \max\limits_{i=1...d} |x_{i} - y_{i}|$.
+\end{itemize}	
+	Не является метрикой при $p < 1$ (нарушается неравенство треугольника).
+\begin{figure}
+  \includegraphics[width=\linewidth]{Minkowski3.png}
+  \caption{Единичная окружность}
+\end{figure}
+\end{frame}
+
+%------------------------------------------------
+\section{Обобщения метрик} 
+\begin{frame}
+\frametitle{Обобщения метрик}
+
+Далеко не все расстояния, используемые в анализе данных являются метриками.
+\begin{block}{Псевдометрика}
+\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.45\textwidth} % Left column and width
+\begin{enumerate}
+	\item $\rho(x, y) \geqslant 0$
+	\item \sout{$\rho(x, y) = 0 \Rightarrow x = y$}
+	\item $x = y \Rightarrow \rho(x, y) = 0$
+	\item $\rho(x, y) = \rho(y, x)$
+	\item $\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$
+\end{enumerate}
+
+\column{.65\textwidth} % Right column and width
+Разрешаем равенство нулю не только на совпадающих объектах.
+
+
+Пример: $ \rho_{M}(x, y) = \sqrt{(x-y)^{T}S^{-1}(x-y)}, S\succeq 0$
+
+\end{columns}
+\end{block} 
+
+\end{frame}
+
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Пример псевдометрики в анализе данных}
+	Расстояние Махаланобиса: 
+	\[\l_{2}(x, y) = \sqrt{(x-y)^{T} (x-y)}\longrightarrow \rho_{M}(x, y) = \sqrt{(x-y)^{T}S^{-1}(x-y)},\]где $S$ — симметричная неотрицательно определенная матрица.
+
+	\vspace{\baselineskip}
+	Смысл: для $S$ можно построить ортонормированный базис из собственных векторов $\Rightarrow SQ = Q \Lambda \Rightarrow S = Q \Lambda Q^{T} \Rightarrow S^{-1}=Q \Lambda ^{-1} Q^ {T}$ 
+	
+	$\Rightarrow \rho_{M}(x, y) = l_{2}(\widetilde{x}, \widetilde{y}),$ где $\widetilde{x} = \Lambda ^{-1/2} Q^{T} x.$
+	
+	\vspace{\baselineskip}
+	Пусть $S = \frac{1}{N-1} \sum\limits_{i = 1}^{N} (x_{i} - \overline{x})(x_{i} - \overline{x})^{T} =  \frac{1}{N - 1} X^{T} X$ --- несмещенная выборочная оценка ковариационной матрицы (выборка предварительно центрирована, $\overline{x} = 0$). Тогда собственные векторы описывают <<направления разброса>> данных, а собственные значения --- степень разброса в направлении соответствующего вектора.  
+	
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Пример псевдометрики в анализе данных}
+	Расстояние Махаланобиса $\rho_{M}(x, y) = \sqrt{(x-y)^{T}S^{-1}(x-y)}$ <<автоматический>> приводит пространство к тому, в котором данные имеют единичную ковариационную матрицу (whitening).
+
+\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.45\textwidth} % Left column and width
+\begin{figure}
+\centering
+        \includegraphics[totalheight=4.5cm]{Mahal.png}
+\end{figure}
+
+\column{.65\textwidth} % Right column and width
+Аксиомы псевдометрики легко проверяются с учетом неотрицательной определенности $S$, неравенство треугольника следует из неравенства Коши-Буняковского для скалярного произведения по отношению к $S: (x, y)_{S} = x^{T}Sy$.
+
+\vspace{\baselineskip}
+Если потребовать $S\succ 0$ получим метрику $\Rightarrow$ $ \rho_{M}$ будет метрикой, если матрица объекты-признаки имеет полный ранг.
+
+\end{columns} 
+\end{frame}
+
+
+%------------------------------------------------
+
+
+\begin{frame}
+\frametitle{Обобщения метрик}
+
+
+\begin{columns}[t] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.5\textwidth} % Left column and width
+\begin{block}{Метаметрика}
+\begin{enumerate}
+	\item $\rho(x, y) \geqslant 0$
+	\item $\rho(x, y) = 0 \Rightarrow x = y$
+	\item \sout{$x = y \Rightarrow \rho(x, y) = 0$}
+	\item $\rho(x, y) = \rho(y, x)$
+	\item $\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$
+\end{enumerate}
+
+\vspace{\baselineskip}
+Разрешаем расстоянию между совпадающими объектами не равнятся нулю.
+\end{block} 
+
+\column{.5\textwidth} % Left column and width
+\begin{block}{Квазиметрика}
+\begin{enumerate}
+	\item $\rho(x, y) \geqslant 0$
+	\item $\rho(x, y) = 0 \Rightarrow x = y$
+	\item $x = y \Rightarrow \rho(x, y) = 0$
+	\item \sout{$\rho(x, y) = \rho(y, x)$}
+	\item $\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$
+\end{enumerate}
+
+\vspace{\baselineskip}
+Разрешаем расстоянию быть несимметричным.
+\end{block} 
+
+\end{columns}
+
+\end{frame}
+
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Обобщения метрик}
+
+\begin{block}{Полуметрика}
+\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.45\textwidth} % Left column and width
+\begin{enumerate}
+	\item $\rho(x, y) \geqslant 0$
+	\item $\rho(x, y) = 0 \Rightarrow x = y$
+	\item $x = y \Rightarrow \rho(x, y) = 0$
+	\item $\rho(x, y) = \rho(y, x)$
+	\item \sout{$\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$}
+\end{enumerate}
+
+\column{.65\textwidth} % Right column and width
+Разрешаем невыполнение неравенства треугольника.
+
+
+Пример: Расстояние Минковского $\l_{p}(x, y) = \left( \sum\limits_{i = 1}^{d} |x^{i} - y^{i}|^{p} \right)^{1/p}$ при $p < 1$.
+
+\vspace{\baselineskip}
+Достаточно рассмотреть контрпример: $a = (0, 0); b = (0, 1); c = (1, 1)$
+
+$l_{p}(a, c) = 2^{1/p} >  l_{p}(a, b) + l_{p}(b, c) = 2$ 
+
+при $p < 1$.
+
+\end{columns}
+\end{block} 
+
+\end{frame}
+
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Еще обобщения метрик}
+
+
+\begin{columns}[t] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.5\textwidth} % Left column and width
+\begin{block}{Праметрика}
+\begin{enumerate}
+	\item $\rho(x, y) \geqslant 0$
+	\item \sout{$\rho(x, y) = 0 \Rightarrow x = y$}
+	\item $x = y \Rightarrow \rho(x, y) = 0$
+	\item \sout{$\rho(x, y) = \rho(y, x)$}
+	\item \sout{$\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$}
+\end{enumerate}
+
+\end{block} 
+
+\column{.5\textwidth} % Left column and width
+\begin{block}{Дивергенция}
+\begin{enumerate}
+	\item $\rho(x, y) \geqslant 0$
+	\item $\rho(x, y) = 0 \Rightarrow x = y$
+	\item $x = y \Rightarrow \rho(x, y) = 0$
+	\item \sout{$\rho(x, y) = \rho(y, x)$}
+	\item \sout{$\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$}
+\end{enumerate}
+
+\vspace{\baselineskip}
+Например, расстояние Кульбака — Лейблера между распределениями:
+$D_{KL}(p||q) = \int p(x)log(\frac{p(x)}{q(x)}) dx$
+\end{block} 
+
+\end{columns}
+
+\end{frame}
+
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Независимость системы аксиом метрики}
+
+Система аксиом независима, если каждая аксиома системы не является логическим следствием остальных аксиом.
+
+\begin{enumerate}
+	\item $\rho(x, y) \geqslant 0$
+	\item $\rho(x, y) = 0 \Rightarrow x = y$
+	\item $x = y \Rightarrow \rho(x, y) = 0$
+	\item $\rho(x, y) = \rho(y, x)$
+	\item $\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$
+\end{enumerate}
+
+Аксиома неотрицательности следует из 3, 4, 5 аксиом:
+\[
+0 = \rho(x, x) \leqslant \rho(x, y) + \rho(y, x) = 2\rho(x, y) \Rightarrow \rho(x, y) \geqslant 0
+\]
+\end{frame}
+
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Независимость системы аксиом}
+
+Независимая система:
+
+\begin{enumerate}
+	\item $\rho(x, y) = 0 \Rightarrow x = y$
+	\item $x = y \Rightarrow \rho(x, y) = 0$
+	\item $\rho(x, y) = \rho(y, x)$
+	\item $\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$
+\end{enumerate}
+
+Как доказать? От противного: предполагаем выводимость одной аксиомы из остальных, находим контрпример, где взятая аксиома не выполнена, а остальные выполнены.
+
+\vspace{\baselineskip}
+Контрпримеры:
+
+\begin{enumerate}
+	\item $\rho(x, y)\equiv0$
+	\item $\rho(x, y)\equiv1$
+	\item $\rho(x, y) = x - y$ при $x - y \geq 0$ и $\rho(x, y) = 1$ при $x - y < 0$
+	\item $\rho(x, y) = l_{p}(x, y) $ при $p < 1$
+\end{enumerate}
+\end{frame}
+
+
+%------------------------------------------------
+\section{PCA}
+
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Напоминание: метод главных компонент (PCA)}
+
+Линейный метод понижения размерности без учителя.
+
+\vspace{\baselineskip}
+Задача понижения размерности: по выборке $x_{1}, ..., x_{N} \in \real^{D}$  построить новое признаковое представление данных $\widetilde{x}_{1}, ..., \widetilde{x}_{N} \in \real^{d}$, где $d < D$.
+
+\vspace{\baselineskip}
+
+\begin{itemize}
+	\item Борьба с переобучением
+	\item Снижение вычислительных затрат
+	\item Визуализация
+	\item Сжатие данных
+\end{itemize}
+
+
+\end{frame}
+%------------------------------------------------
+
+
+\begin{frame}
+\frametitle{Идея: метод главных компонент}
+ 
+\begin{columns}[t] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.4\textwidth} % Left column and width
+
+Найти подпространство размерности $d$, имеющее минимальную сумму квадратов ошибки:
+
+$\sum\limits_{i = 1}^{N} ||h_i||^2 \rightarrow \min\limits_{v_1, ..., v_d}$ 
+
+\begin{figure}
+\centering
+        \includegraphics[totalheight=4.25cm]{pca_fix.png}
+\end{figure}
+\column{.05\textwidth} % Left column and width
+
+\vspace{\baselineskip}
+$\backsim$
+\column{.4\textwidth} % Left column and width
+
+
+Найти подпространство размерности $d$, проекции объектов на которое будет иметь наибольший разброс:
+$\sum\limits_{i = 1}^{N} ||p_i||^2 \rightarrow \max\limits_{v_1, ..., v_d}$ 
+
+\vspace{\baselineskip}
+\vspace{\baselineskip}
+\vspace{\baselineskip}
+$x_i = h_i + p_i,$  $p_i \in L,$ $h_i \perp L;$ 
+
+$L = \ell (v_1, ..., v_d);$
+
+$\widetilde{x_i} = p_i;$
+\end{columns}
+
+
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Решение: метод главных компонент}
+
+Предварительно обрабатываем данные: 
+
+Ищем подпространство, проходящее через 0 $\Rightarrow$ центрируем до применения метода.
+\begin{figure}
+\centering
+        \includegraphics[totalheight=4.25cm]{PCA1.jpg}
+\end{figure}
+
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Решение: метод главных компонент}
+
+Решаем задачу максимизации жадно:
+
+\begin{enumerate}
+	\item $||Xa_1||^{2} \rightarrow \max_{a_1},$ т.ч. $||a_1|| = 1$
+	\item $||Xa_2||^{2} \rightarrow \max_{a_2},$ т.ч. $||a_2|| = 1,$ $a_2 \perp a_1$
+	\item $||Xa_3||^{2} \rightarrow \max_{a_3},$ т.ч. $||a_3|| = 1,$ $a_3 \perp a_2,$ $a_3 \perp a_1$
+\end{enumerate}
+и т.д.
+
+
+$ \dfrac{\partial}{\partial a_1} (a_{1}^{T}X^T Xa_1 - \lambda (a_1^T a_1 - 1)) = 2X^{T}Xa_1 - 2\lambda a_1 =  0 $
+
+$\Rightarrow a_1$ --- с.в. $X^{T} X$, причем $||Xa_1||^2 = \lambda ||a_1||^{2} = \lambda$ 
+
+$\Rightarrow a_1$ соотв. наиб. с.з.
+
+и т.д.
+
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Решение: метод главных компонент}
+
+Можно поставить эквивалентную задачу максимизации разброса проекций на первую главную компоненту:
+
+\vspace{\baselineskip}
+$Var(Xa_1) = \frac{1}{N - 1} (Xa_1)^T Xa_1 = a_1^T \frac{1}{N - 1} X^T X a_1 = a_1^T S a_1, ||a_1|| = 1$. 
+
+\vspace{\baselineskip}
+Главные компоненты последовательно описывают направления, вдоль которых данные имеют наибольший разброс, в порядке невозрастания с.з.
+
+Можно показать, что жадный подбор компонент дает искомое оптимальное подпространство.
+
+\vspace{\baselineskip}
+Т.о. выборочная ковариационная матрица симметрична $\Rightarrow \exists$ о.н. базис из с.в. $\Rightarrow$ упорядочиваем с.з. по невозрастанию и в качестве главных компонент берем первые $d$ соответствующих с.в.
+
+\end{frame}
+%------------------------------------------------
+\section{Многомерное шкалирование}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Многомерное шкалирование}
+
+Задача: 
+
+\vspace{\baselineskip}
+Про исходные данные $\widehat{X} = {\widehat{x}_1, ..., \widehat{x}_N}$ известны лишь попарные различия, требуется найти такое признаковое представление данных в маломерном пространстве ($p = 2, 3$) $x_i = (x_i^1, x_i^2)$, что $d_{ij} = dissim(\widehat{x}_i, \widehat{x}_j) \thickapprox ||x_i - x_j||_2$.
+
+\vspace{\baselineskip}
+Применение: визуализация.
+
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Пример: цветовое восприятие человека}
+\begin{itemize}
+	\item {Было выделено 14 цветов, отличающихся по тону (Ekman, Izenman).}
+	\item {31 человек отметил каждую из $C_{14}^2$ пар цветов числом от 0 (сильно отличаются) до 4 (совпадают).}
+	\item {Рейтинг каждой пары усреднили, отмасштабировали и вычли из единицы, чтобы получить различия (dissimilarities).}
+\end{itemize}
+
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Цветовое восприятие человека}
+
+Получили симметричную матрицу различий с нулями на диагонали.
+\begin{figure}
+\centering
+        \includegraphics[totalheight=4.25cm]{color_matrix.png}
+\end{figure}
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Цветовое восприятие человека}
+
+MDS $\longrightarrow$ двумерный цветовой круг
+
+\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.7\textwidth} % Left column and width
+
+\begin{figure}
+\centering
+        \includegraphics[totalheight=5.25cm]{color_circle1.png}
+\end{figure}
+
+\column{.3\textwidth} % Left column and width
+
+\begin{figure}
+\centering
+        \includegraphics[totalheight=3.25cm]{color_circle2.png}
+\end{figure}
+
+\end{columns}
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Евклидовы и неевклидовы расстояния}
+
+Вопрос: заданная матрица различий $\equiv$ матрица попарных растояний? 
+
+Если да, существует ли такое признаковое представление данных $x_i$, что выполнено точное равенство: $d_{ij} = dissim(\widehat{x}_i, \widehat{x}_j) = ||x_i - x_j||_2$?
+
+\vspace{\baselineskip}
+Если $\exists \{x_i\}_{i=1}^{N} \in \real^p$, т.ч. $d_{ij} = ||x_i - x_j||_2$, то исходное расстояние $d(x_i, x_j)$ --- \textbf{евклидово} (Euclidean distance).
+
+\vspace{\baselineskip}
+Если $\forall p$ и $ \forall \{x_i\}_{i=1}^{N} \in \real^p$ выполнено $d_{ij} \neq ||x_i - x_j||_2$, то исходное расстояние $d(x_i, x_j)$ --- \textbf{неевклидово} (Non-euclidean distance).
+
+\begin{figure}
+\centering
+        \includegraphics[totalheight=2.25cm]{noneucl.png}
+\end{figure}
+
+5.8 $\rightarrow \frac{2}{3} \sqrt{75}$
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Классическая теория многомерного шкалирования}
+
+Пусть входная матрица различий --- матрица попарных расстояний для евклидовой метрики $D = (d_{ij})$.
+
+\vspace{\baselineskip}
+Задача классического MDS (cMDS) --- найти $X = (x_1, ..., x_N)^T$, т.ч. $d_{ij} = ||x_i - x_j||_2$.
+
+Решение не единственно: $X^* = X + c^T$ тоже решение, т.к. $d_{ij} = ||x_i - x_j|| = ||(x_i + c) - (x_j + c)||$.
+Ищем центрированную конфигурацию $\overline{x} = 0$.
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Восстановление координат в cMDS}
+Матрица $D$ евклидова, т.е. $\exists \{x_i\}_{i=1}^{N} \in \real^p$, т.ч. $d_{ij}^2 = (x_i - x_j)^T(x_i - x_j)$
+
+Идея: восстановить $\{x_i\}_{i=1}^{N} \in \real^p$, при условии $\overline{x} = 0$.
+
+\vspace{\baselineskip}
+Решение: восстановим матрицу Грама $B = (b_{ij}),$ где $b_{ij} = x_i^T x_j$
+
+Обозначим $X = (x_1, ..., x_N)^T \Rightarrow B = XX^T$
+
+Т. о. если получим матрицу Грама, то сможем по ее спектральному разложению получить $X$.
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Восстановление матрицы Грама в cMDS}
+\begin{itemize}
+
+\item{$d_{ij}^2 = (x_i - x_j)^T(x_i - x_j) = x_i^Tx_i + x_j^Tx_j - 2x_i^Tx_j = b_{ii} + b_{jj} - 2b_{ij}$}
+
+\item{$\overline{x} = 0 \Rightarrow \sum_{i=1}^N b_{ij} = 0$}
+
+\item{$\dfrac{1}{N} \sum\limits_{i=1}^{N} d_{ij}^2 = \dfrac{1}{N} \sum\limits_{i=1}^{N} b_{ii} + b_{jj}$
+
+$\dfrac{1}{N} \sum\limits_{j=1}^{N} d_{ij}^2 = b_{ii} + \dfrac{1}{N} \sum\limits_{j=1}^{N} b_{jj}$
+
+$\dfrac{1}{N^2} \sum\limits_{i, j=1}^{N} d_{ij}^2 = \dfrac{2}{N} \sum\limits_{i=1}^{N} b_{ii}$}
+
+\item{$b_{ij} = -\dfrac{1}{2}(d_{ij}^2 - d_{i \bullet}^2 - d_{\bullet j}^2 + d_{\bullet \bullet}^2)$}
+\end{itemize}
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Решение cMDS}
+
+
+Строим по $D$ матрицу Грама $B$:
+
+\begin{itemize}
+\item{$b_{ij} = -\dfrac{1}{2}(d_{ij}^2 - d_{i \bullet}^2 - d_{\bullet j}^2 + d_{\bullet \bullet}^2)$}
+\item{$B = C_N A C_N$, где $A = -\dfrac{1}{2} D^2$ --- поэлементно, $C_n = E - \dfrac{1}{n} \textbf{1} \textbf{1}^T$.}
+\end{itemize}
+
+\vspace{\baselineskip}
+$B = XX^T,$ $X \in \real^{N \times p} \Rightarrow B$ --- симметричная, неотрицательно определенная, ранга $rg{B} = rg{XX^T} = rg{X} = p$
+
+$B$ имеет $p$ положительных с.з. и $n-p$ нулевых с.з.
+
+$B = \Gamma \Lambda \Gamma^T$, где $\Lambda = diag(\lambda_1, ..., \lambda_p)$ и $\Gamma = (\gamma_1, ..., \gamma_p)$ --- матрица с.в.
+
+\vspace{\baselineskip}
+\begin{center}
+$X = \Gamma \Lambda^{\frac{1}{2}}$ 
+\end{center}
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{cMDS}
+
+cMDS позволяет восстановить $\{x_i\}_{i=1}^{N} \in \real^p$, т.ч. $\overline{x} = 0$ и $d_{ij} = ||x_i - x_j||_2$ --- \textit{точное равенство}.
+
+\vspace{\baselineskip}
+Размерность $p$ восстановленных координат может не удовлетворять нашим целям.
+
+\vspace{\baselineskip}
+Для нахождения координат $\{x_i\}_{i=1}^{N} \in \real^q$ меньшей размерности $q < p$ берем $\Gamma = (\gamma_1, ..., \gamma_q)$ $q$ с.в. матрицы Грама с наибольшими с.з. и находим искомые координаты $X = \Gamma \Lambda^{\frac{1}{2}} \in \real^{N \times q}$ 
+
+\vspace{\baselineskip}
+Тогда $d_{ij} \approx ||x_i - x_j||$ --- \textit{точное равенство не гарантируется}.
+
+
+\end{frame}
+%------------------------------------------------
+\begin{frame}
+\frametitle{cMDS $\sim$ PCA}
+
+\begin{center}
+\textbf{cMDS $\sim$ PCA}
+\end{center}
+
+\begin{columns}[t] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.5\textwidth} % Left column and width
+\begin{block}{cMDS}
+Находим матрицу Грама $XX^T$, используем ее спектральное разложение.
+\end{block}
+
+\column{.5\textwidth} % Left column and width
+\begin{block}{PCA}
+Находим выборочную ковариационную матрицу $\frac{1}{N - 1} X^TX$, используем ее спектральное разложение.
+\end{block}
+\end{columns}
+
+\vspace{\baselineskip}
+$XX^T \in \real^{N \times N}$, $X^TX \in \real^{D \times D}$, но спектры совпадают с точностью до добавления нулевых с.з.:
+
+\vspace{\baselineskip}
+$XX^Tv = \lambda v \Rightarrow X^T(XX^Tv) = X^T(\lambda v) \Rightarrow$ если $v$ - с.в. $XX^T$, то $X^Tv$ - с.в. $X^T X$ с тем же с.з.
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{cMDS}
+
+cMDS можно использовать и для неевклидовых матриц, и вообще для произвольных матриц различий (не обязательно расстояний).
+
+\vspace{\baselineskip}
+Вообще говоря, могут быть отрицательные с.з. матрицы Грама $XX^T$. Тогда можно оставить только с.в., отвечающие положительным с.з.
+
+\vspace{\baselineskip}
+cMDS будет находить $\{x_i\}_{i=1}^{N} \in \real^q$, т.ч. $\overline{x} = 0$ и $d_{ij} \approx ||x_i - x_j||$.
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{cMDS}
+
+Вопрос: как понять, что матрица попарных расстояний $D$ евклидова?
+
+\begin{Theorem}[Критерий <<евклидовости>> матрицы различий]
+Пусть $A = (a_{ij}), a_{ij} = -\frac{1}{2}d_{ij}^2$ и $B = C_N A C_N$, где $C_N$ --- центрирующая матрица.
+
+$D$ --- евклидова тогда и только тогда, когда $B$ неотрицательно определена.
+\end{Theorem}
+
+По сути пытаемся к $D$ применить алгоритм cMDS.
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Пример применения cMDS}
+\begin{figure}
+\centering
+        \includegraphics[totalheight=7.5cm]{airline1.png}
+\end{figure}
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Пример применения cMDS}
+\begin{figure}
+\centering
+        \includegraphics[totalheight=6.5cm]{airline2.png}
+\end{figure}
+
+Авиарасстояние (Airline distance) не является евклидовым. 
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Пример применения cMDS}
+
+\begin{columns}[t] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.6\textwidth} % Left column and width
+\begin{figure}
+\centering
+        \includegraphics[totalheight=5.5cm]{airline3.png}
+\end{figure}
+
+\column{.5\textwidth} % Left column and width
+\begin{figure}
+\centering
+        \includegraphics[totalheight=4.5cm]{airline4.png}
+\end{figure}
+\end{columns}
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Другой подход к MDS}
+
+Решаем ту же задачу:
+
+Найти $\{x_i\}$ такие, что $d_{ij} = dissim(\widehat{x}_i, \widehat{x}_j) \thickapprox ||x_i - x_j||_2$.
+
+
+\vspace{\baselineskip}
+Другой подход: определим функционал $Stress(x_1, ..., x_N)  = \left( \sum\limits_{i \neq j = 1,..., N} (d_{ij} - ||x_i - x_j||)^2 \right)^{1/2}$
+
+\vspace{\baselineskip}
+Будем его оптимизировать: $Stress \rightarrow \min\limits_{x_1, ..., x_N}$
+
+Например, градиентным спуском.
+
+\vspace{\baselineskip}
+Такой подход называется метрическим многомерным шкалированием (\textit{metric MDS --- mMDS}).
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Другой подход к MDS}
+
+По сути cMDS решает аналогичную задачу:
+
+\vspace{\baselineskip}
+\vspace{\baselineskip}
+\vspace{\baselineskip}
+$Strain(x_1, ..., x_N)  = \left( \dfrac{\sum\limits_{i, j} (b_{ij} - x_i^Tx_j)^2 }{\sum\limits_{i, j} b_{ij}^2}\right)^{1/2} \rightarrow \min\limits_{x_1, ..., x_N}$, 
+
+где $B$ - матрица Грама.
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Пример mMDS}
+
+$Sammons$ $stress(x_1, ..., x_N) = \dfrac{1}{\sum_{i < j} d_{ij}} \sum\limits_{i < j} \dfrac{(||x_i - x_j|| - d_{ij})^2}{d_{ij}}$
+
+\vspace{\baselineskip}
+Идея: даем ошибкам веса, т.ч. метод лучше воспроизводит малые расстояния.
+
+\vspace{\baselineskip}
+Оптимизируем итерационно, например, градиентным спуском. Начальные координаты $x_1, ..., x_N$ можно получить методом классического многомерного шкалирования (cMDS).
+\end{frame}
+%------------------------------------------------
+
+
+\begin{frame}
+\frametitle{Еще пример задачи MDS}
+
+Wolford и Hollingsworth собрали данные, как часто человек ошибается при распознавании букв, показанных ему в течение нескольких миллисекунд. Получена матрица ошибок (ее кусок):
+
+\begin{figure}
+\centering
+        \includegraphics[totalheight=4cm]{letter.png}
+\end{figure}
+
+\textit{Можно ли считать эту матрицу матрицей различий (dissimilarities matrix)?}
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{non-metric MDS}
+
+Как перевести матрицу сходств (similarities matrix) в матрицу различий (dissimilarities matrix)?
+
+\vspace{\baselineskip}
+Можно найти наибольшее значение из сходств  $c = \max\delta_{ij}$ (наибольшее число в матрице) и преобразовать матрицу: $\delta_{ij} \rightarrow c - \delta_{ij}$.
+
+\vspace{\baselineskip}
+Проблема: полученные расстояния <<плавают>> в зависимости от выбора $c$. Сохраняется лишь порядок между расстояниями. 
+
+\vspace{\baselineskip}
+$\Rightarrow$ Идея неметрического многомерного шкалирования (non-metric MDS) --- лучше воспроизводить порядковые отношения между расстояниями, чем сами расстояния.
+
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{non-metric MDS}
+
+Постановка проблемы (Shepard-Kruskal Scaling):
+
+\vspace{\baselineskip}
+Дана симметричная матрица с нулями на диагонали $\Delta = (\delta_{ij})$ 
+
+\vspace{\baselineskip}
+Найти $X = (x_1, ..., x_N) \in \real^{d \times n}$, т.ч. $\forall i, j, k, l$ $||x_i - x_j||_2^2 < ||x_k - x_l||_2^2 \Longleftrightarrow \delta_{ij} < \delta_{kl}$
+
+\vspace{\baselineskip}
+Аналогично cMDS, $\exists X$ --- точное решение, то есть выполнено:
+$\forall i, j, k, l$ $||x_i - x_j||_2^2 < ||x_k - x_l||_2^2 \Longleftrightarrow \delta_{ij} < \delta_{kl}$
+ 
+\vspace{\baselineskip}
+Идея та же, что в cMDS: восстанавливаем матрицу Грама $B$ и боремся с отрицательными с.з.: $\widehat{B} = B - \min(\lambda_{min}(B), 0) I$.
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Еще пример задачи MDS}
+
+\begin{figure}
+\centering
+        \includegraphics[totalheight=7cm]{letter1.png}
+\end{figure}
+
+\end{frame}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Резюме}
+\begin{itemize}
+\item{Метрические методы встречаются в большинстве задач анализа данных, позволяют решать как задачи машинного обучения, так и предобрабатывать и визуализировать данные.}
+\item{Спектральное разложение --- ключевая идея метода главных компонент, классического многомерного шкалирования, расстояния Махаланобиса.}
+\item{PCA $\sim$ MDS.}
+\item{Основные методы многомерного шкалирования: сMDS, mMDS, nMDS.}
+\end{itemize}
+\end{frame}
+%------------------------------------------------
+
+\end{document} 
