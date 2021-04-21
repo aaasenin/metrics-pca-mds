@@ -1,0 +1,1071 @@
+
+
+\documentclass[9pt]{beamer}
+\mode<presentation> {
+
+
+\usecolortheme{dolphin}
+
+\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+
+\setbeamertemplate{footline}[page number]
+
+%~/Library/R/3.1/library/rmarkdown/rmd/beamer/default.tex
+
+%\useoutertheme[subsection=false]{blocks}
+
+
+\usefonttheme[onlymath]{serif}
+\setbeamertemplate{headline}[default]
+\setbeamertemplate{navigation symbols}{}
+\mode<beamer>{\setbeamertemplate{blocks}[rounded][shadow=false]}
+\setbeamercovered{transparent}
+\setbeamercolor{block body example}{fg=blue, bg=black!20}
+
+\useoutertheme[subsection=false]{miniframes}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage[utf8]{inputenc}
+\usepackage[main=russian, english]{babel}
+\usepackage[T1,T2A]{fontenc}
+\usepackage[normalem]{ulem}
+
+\newcommand{\norm}{\mathop{\rm norm}\limits}
+\newcommand{\real}{\mathbb{R}}
+\newcommand{\ex}{\mathbb{E}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\intset}{\mathrm{int}}
+\newcommand{\softmax}{\mathop{\rm softmax}\limits}
+\newcommand{\lossfunc}{\mathcal{L}'}
+\newcommand{\dd}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\nm}{\mathcal{N}}
+\newcommand{\sle}{\; \Rightarrow \;}
+\newcommand{\indpos}{\mathbf{I}_{d_k}^{+}[i, j]}
+\newcommand{\indneg}{\mathbf{I}_{d_k}^{-}[i, j]}
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[Short title]{Методы реализации расстояний с использованием разнородной обучающей информации} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Александр Сенин, 417} % Your name
+% \institute[UCLA] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+% {
+% University of California \\ % Your institution for the title page
+% \medskip
+% \textit{john@smith.com} % Your email address
+% }
+\date{21 апреля 2021 г.} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+%\begin{frame}
+%\frametitle{Содержание} % Table of contents slide, comment this block out to remove it
+%\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+%\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{Основные понятия} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+% \subsection{Аксиомы} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Метрика}
+Пусть $\mathcal{X}$ --- множество объектов произвольной природы. 
+
+\vspace{\baselineskip}
+\textit{Метрикой} (\textit{расстоянием}) будем называть функцию $\rho: \mathcal{X} \times \mathcal{X} \to \mathbb{R}$, $\forall x, y, z \in \mathcal{X}$ удовлетворяющую следующим аксиомам:
+
+\begin{enumerate}[(a)]
+    \item $\rho(x, x) = 0$
+	\item $\rho(x, y) \geqslant 0$ (неотрицательность)
+	\item $\rho(x, y) = \rho(y, x)$ (симметричность)
+	\item $\rho(x, y) = 0 \Longrightarrow x = y$ (определенность)
+	\item $\rho(x, y) \leqslant \rho(x, z) + \rho(z, y)$ (неравенство треугольника)
+\end{enumerate}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}{Обобщения метрики}
+
+Определим функцию различия (dissimilarity function).
+
+\vspace{\baselineskip}
+
+\textit{Различием} (\textit{dissimilarity}) будем называть функцию $d: \mathcal{X} \times \mathcal{X} \to \mathbb{R}$, $\forall x, y \in \mathcal{X}$ удовлетворяющую следующим требованиям:
+
+\begin{enumerate}[(D1)]
+    \item $d(x, x) = 0$
+	\item $d(x, y) \geqslant 0$ 
+\end{enumerate}
+\vspace{\baselineskip}
+Рассмотрим множество объектов $x_1, ..., x_N \in \mathcal{X}$. 
+
+Известно, что на некоторых парах определена функция различия $d(x_i, x_j)$. В таком случае заданы тройки $\{(i, j, d_{ij})\}_{(i, j) \in M}$, где $M$ --- множество пар, на которых определно различие. 
+
+\vspace{\baselineskip}
+
+В случае $M = {(i, j)}_{i, j =1}^N$ будем считать, что задана \textit{матрица попарных различий} $D = (d_{ij})_{i,j=1}^N$. 
+
+В случае, когда известно, что $d$ представляет собой метрику, задана \textit{матрица попарных расстояний} $D$.
+    
+\end{frame}
+
+\begin{frame}{Обобщения метрики}
+
+Естественно вслед за различием определить понятие сходства.
+
+\vspace{\baselineskip}
+
+\textit{Сходством} (\textit{близостью, similarity}) будем называть функцию $s: \mathcal{X} \times \mathcal{X} \to \mathbb{R}$, $\forall x \in \mathcal{X}$ удовлетворяющую единственному требованию:
+
+\begin{enumerate}[(S1)]
+    \item $s(x, x) > 0$
+\end{enumerate}
+\vspace{\baselineskip}
+
+Будем говорить, что для троек $\{(i, j, d_{ij})\}_{(i, j) \in M}$ существует \textit{реализация расстояния} (\textit{различия}) в пространстве $\mathbb{R}^d$, если существует такой набор (\textit{конфигурация}) $x_1, ..., x_N \in \mathbb{R}^d$, что $\forall (i, j) \in M$
+\begin{equation}\label{exact}\rho_E(x_i, x_j) = ||x_i - x_j|| = d_{ij} \end{equation}
+
+На практике точное равенство не всегда достижимо.
+    
+\end{frame}
+
+\begin{frame}{Преобразования сходств и различий}
+
+Часто приходится конвертировать сходства в различия или наоборот.
+
+\textit{По сходствам получаем различия:}
+\begin{itemize}
+\item Пусть известен диапазон значений функции сходства $0 \leqslant s(x, y) \leqslant S$, $\forall x,y \in \mathcal{X}$, а также $s(x, x) = S$, $\forall x \in \mathcal{X}$ (среди всевозможных объектов больше всего на себя похож сам объект). Тогда легко показать, что $d(x, y) = S - s(x, y)$ является функцией различия.
+\item Более общий подход --- применение некоторой неотрицательной убывающей функции $f(s(x, y))$, где $f(a) > f(b)$ при $a < b$. 
+
+В общем случае теряем требования (D1) или (D2). Очевидный вариант преобразования $d(x,y) = \frac{1}{s(x, y)}$ лишает требования (D1). 
+\vspace{\baselineskip}
+
+На практике сохранение всех аксиом функции различия зачастую не важно, выбор функции $f$ позволяет смещать внимание модели на более тщательное воспроизведение близких (или наоборот далеких) объектов.
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Преобразования сходств и различий}
+
+\textit{По различиям получаем сходства:}
+\begin{itemize}
+\item Аналогично: применяем некоторую убывающую неотрицательную функцию к функции различия $g(d(x, y))$, где $g(a) > g(b)$ при $a < b$.
+Слабые требования в определении функции сходства позволяют гарантировать получение строгого сходства при таком преобразовании.
+\end{itemize}
+
+\vspace{\baselineskip}
+При некоторых дополнительных условиях можно использовать более качественные преобразования с теоретическим гарантиями.
+    
+\end{frame}
+
+\section{Постановка задачи}
+
+\begin{frame}{Многомерное шкалирование}
+
+Рассмотрим некоторое множество объектов $\hat{x}_1, ..., \hat{x}_N \in \mathcal{X}$. Известно, что на некоторых парах $M$ этого множества определена функция различия $d(x, y)$: $\{(i, j, d_{ij})\}_{(i, j) \in M},$ где $d_{ij} = d(\hat{x}_i, \hat{x}_j)$.
+
+\vspace{\baselineskip}
+Неформально, общий подход методов \textit{многомерного шкалирования} (\textit{multidimensional scaling, MDS}) заключается в нахождении (возможно приближенно) конфигурации $x_1,...,x_N \in \mathbb{R}^d$, реализующей различия $d_{ij}$ в терминах (1):
+$$\rho_E(x_i, x_j) = ||x_i - x_j|| = d_{ij} $$
+
+\vspace{\baselineskip}
+Принято считать, что размерность $d$ полученных векторов $x_1, ..., x_N$ задается предварительно. Однако, существуют теоретические результаты, гарантирующие существование размерности $p$ и конфигурации $x_1, ..., x_N \in \mathbb{R}^p$, точно реализующей матрицу попарных расстояний $D$ в терминах (1), при условии $d(x,y) = \rho_E(x, y)$ --- исходная функция различия должна быть расстоянием, причем евклидовым.
+    
+\end{frame}
+
+\begin{frame}{Классическое многомерное шкалирование}
+Методы многомерного шкалирования распадаются на три класса.
+\vspace{\baselineskip}
+
+\textit{Классическое многомерное шкалирование (classical multidimensional scaling, cMDS)}:
+    \vspace{\baselineskip}
+    
+    Задана матрица попарных различий $D = (d_{ij})_{i,j=1}^N$ и выполнено важное предположение:
+    $\mathcal{X}$ является евклидовым пространством, причем функция различия $d$ есть евклидово расстояние $d(\hat{x}_i, \hat{x}_j) = \rho_E(\hat{x}_i, \hat{x}_j) = \sqrt{\langle \hat{x}_i - \hat{x}_j, \hat{x}_i - \hat{x}_j \rangle}$.
+    
+    \vspace{\baselineskip}
+    Обозначим \textit{матрицу Грама} (матрицу скалярных произведений) $
+        B = (b_{ij})_{i,j=1}^N, \: где b_{ij} = \langle \hat{x}_i, \hat{x}_j \rangle.
+    $
+
+    Определим \textit{функционал Strain (натяжения)}:
+    \begin{equation}
+    \label{strain1}
+        Strain(x_1, ..., x_N) = \sum_{i, j=1}^{N} (b_{ij} - \langle x_i, x_j \rangle)^2, \: x_1, ..., x_N \in \mathbb{R}^d
+    \end{equation}
+    
+\end{frame}
+
+\begin{frame}{Классическое многомерное шкалирование}
+        Часто определяют $Strain$ иначе:
+    \begin{equation}
+    \label{strain2}
+        Strain(x_1, ..., x_N) = \sqrt{\dfrac{\sum_{i, j=1}^{N} (b_{ij} - \langle x_i, x_j \rangle)^2}{\sum_{i, j=1}^{N} b_{ij}^2}}, \: x_1, ..., x_N \in \mathbb{R}^d
+    \end{equation}
+    
+    \vspace{\baselineskip}
+    \textit{Задача классического многомерного шкалирования:}
+        \begin{itemize}
+        \item По матрице попарных различий $D$ восстановить матрицу Грама $B$.
+        \item Решить оптимизационную задачу:
+        \begin{equation}
+        Strain(x_1, ..., x_N) = \sum_{i, j=1}^{N} (b_{ij} - \langle x_i, x_j \rangle)^2 \longrightarrow \min_{x_1, ..., x_N \in \mathbb{R}^d}
+        \end{equation}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Метрическое многомерное шкалирование}
+
+\textit{Метрическое многомерное шкалирование (metric multidimensional scaling, mMDS):}
+    
+    \vspace{\baselineskip}
+    Обобщение классического подхода, снимаем требования на заданную матрицу попарных различий.
+    
+     \vspace{\baselineskip}
+    Пусть на некоторых парах $M$ заданы значения функции различия $d(x, y)$: $\{(i, j, d_{ij})\}_{(i, j) \in M},$ где $d_{ij} = d(\hat{x}_i, \hat{x}_j)$.
+    
+    Определим \textit{функционал Stress (стресса)}:
+    \begin{equation}
+    \label{stress1}
+        Stress(x_1, ..., x_N) = \sum_{(i, j) \in M} (d_{ij} - || x_i - x_j ||)^2, \: x_1, ..., x_N \in \mathbb{R}^d
+    \end{equation}
+    Часто определяют $Stress$ иначе:
+    \begin{equation}
+    \label{stress2}
+        Stress(x_1, ..., x_N) = \sqrt{\dfrac{\sum_{(i, j) \in M} (d_{ij} - || x_i - x_j ||)^2}{\sum_{(i, j) \in M} d_{ij}^2}}, \: x_1, ..., x_N \in \mathbb{R}^d
+    \end{equation}
+    
+\end{frame}
+
+\begin{frame}{Метрическое многомерное шкалирование}
+        \textit{Задача метрического многомерного шкалирования:}
+    
+    \begin{itemize}
+        \item Решить оптимизационную задачу:
+        \begin{equation}
+        \label{stress_min}
+        Stress(x_1, ..., x_N) = \sum_{(i, j) \in M} (d_{ij} - || x_i - x_j ||)^2 \longrightarrow \min_{x_1, ..., x_N \in \mathbb{R}^d}
+        \end{equation}
+        
+        \vspace{\baselineskip}
+        Аналогично, легко заметить, что для оптимизационной задачи минимизации определения \ref{stress1} и \ref{stress2} эквивалентны.
+        
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Неметрическое многомерное шкалирование}
+
+\textit{Неметрическое многомерное шкалирование (non-metric multidimensional scaling, nMDS):}
+
+\vspace{\baselineskip}
+    
+    В классической литературе, например, обычно предполагается существование некоторой неизвестной возрастающей функции $f$, такой что $d_{ij} = f(\delta_{ij})$, где $d_{ij}$ --- наблюдаемые различия, а $\delta_{ij}$  --- истинные. Затем по аналогии с mMDS конструируется функционал стресса. Этот подход обсудим позднее.
+  \vspace{\baselineskip}  
+  
+    Пусть на некоторых парах $M$ заданы значения функции различия $d(x, y)$: $\{(i, j, d_{ij})\}_{(i, j) \in M},$ где $d_{ij} = d(\hat{x}_i, \hat{x}_j)$.
+    
+\end{frame}
+
+\begin{frame}{Неметрическое многомерное шкалирование}
+    \textit{Задача неметрического многомерного шкалирования:}
+    
+    \begin{itemize}
+        \item По заданным различиям $d_{ij}$ требуется найти конфигурацию $x_1, ..., x_N \in \mathbb{R}^d$, такую что
+        \begin{equation}
+            \forall \: (i, j), (k,l) \in M \; \; d_{ij} < d_{kl} \Longleftrightarrow ||x_i - x_j|| < ||x_k - x_l||
+        \end{equation}
+        
+        \item Дополнительно можно потребовать выполнение неравенства с некоторым зазором (отступом) $m > 0$:
+        \begin{equation}
+        \label{nmdsproblem}
+            \forall \: (i, j), (k,l) \in M \; \; d_{ij} < d_{kl} \Longleftrightarrow ||x_i - x_j|| + m < ||x_k - x_l||
+        \end{equation}
+    \end{itemize}
+\end{frame}
+
+\section{Существующие подходы}
+
+\begin{frame}{Решение cMDS}
+
+\textit{Классическое многомерное шкалирование (classical multidimensional scaling, cMDS):}
+    \vspace{\baselineskip}  
+    
+    При решении cMDS важны два предположения: 
+    \begin{itemize}
+        \item Предположение о том, что функция различия есть евклидово расстояние $d(\hat{x}_i, \hat{x}_j) = \rho_E(\hat{x}_i, \hat{x}_j) = \sqrt{\langle \hat{x}_i - \hat{x}_j, \hat{x}_i - \hat{x}_j \rangle}$
+        \item Предположение о том, что расстояния заданы на всевозможных парах $(i, j)$, то есть задана полноценная матрица попарных расстояний $D = (d_{ij})_{i,j=1}^N$.
+    \end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Решение cMDS}
+    Основная идея: 
+    
+    $d_{ij}^2 = (x_i - x_j)^T(x_i - x_j) = x_i^Tx_i + x_j^Tx_j - 2x_i^Tx_j = b_{ii} + b_{jj} - 2b_{ij}$.
+    
+    Дополнительное условие:
+        $\overline{x} = \frac{1}{N} \sum_{i = 1}^N x_i = 0$.
+        
+    \vspace{\baselineskip}  
+
+    
+
+    \begin{itemize}
+
+    \item {$\overline{x} = 0 \Rightarrow \sum_{i=1}^N b_{ij} = 0$}
+
+    \item{$\dfrac{1}{N} \sum\limits_{i=1}^{N} d_{ij}^2 = \dfrac{1}{N} \sum\limits_{i=1}^{N} b_{ii} + b_{jj}$
+
+    $\dfrac{1}{N} \sum\limits_{j=1}^{N} d_{ij}^2 = b_{ii} + \dfrac{1}{N} \sum\limits_{j=1}^{N} b_{jj}$
+
+    $\dfrac{1}{N^2} \sum\limits_{i, j=1}^{N} d_{ij}^2 = \dfrac{2}{N} \sum\limits_{i=1}^{N} b_{ii}$}
+
+    \item{$b_{ij} = -\dfrac{1}{2}(d_{ij}^2 - d_{i \bullet}^2 - d_{\bullet j}^2 + d_{\bullet \bullet}^2)$,
+    
+    где $d_{i \bullet}^2 = \dfrac{1}{N} \sum\limits_{i=1}^{N} d_{ij}^2, \:$ $d_{\bullet j}^2 = \dfrac{1}{N} \sum\limits_{j=1}^{N} d_{ij}^2, \:$ $d_{\bullet \bullet}^2 = \dfrac{1}{N^2} \sum\limits_{i, j=1}^{N} d_{ij}^2 \:$}
+    
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Решение cMDS}
+
+Другими словами, 
+    \begin{equation}
+    \label{gram}
+    B = C_N A C_N, 
+    \end{equation}
+    где $A$ получается из $D$ поэлементным возведением в квадрат и домножением на $-0.5$, $C_N = E - \dfrac{1}{N} \textbf{1} \textbf{1}^T$, $\textbf{1} \textbf{1}^T$ --- матрица из единиц.
+    
+    Пусть $X \in \mathbb{R}^{N \times p}$ --- матрица, в которой векторы искомой конфигурации $x_1, ..., x_N$ записаны по строкам.
+    
+    Тогда по определению матрицы Грама $B = XX^T,$ причем 
+    \begin{itemize}
+        \item $B$ --- симметричная $(XX^T)^T = XX^T$ 
+        \item $B$ --- неотрицательно определенная $\langle XX^Ta, a\rangle = \langle X^Ta, X^Ta\rangle \geqslant 0$
+        \item $rg{B} = rg{XX^T} = rg{X} = p$
+    \end{itemize}
+    $B$ имеет $p$ положительных собственных значений и $n-p$ нулевых, и может быть представлена в виде:
+\begin{equation}
+\label{spectral}
+    B = \Gamma \Lambda \Gamma^T,
+\end{equation}
+где $\Lambda = diag(\lambda_1, ..., \lambda_p)$ и $\Gamma = (\gamma_1, ..., \gamma_p)$ --- матрица собственных векторов, отвечающих собственным значениям $\lambda_1, ..., \lambda_p$.
+
+Наконец, отсюда находим искомую конфигурацию
+\begin{equation}
+\label{X}
+    X = \Gamma \Lambda^{\frac{1}{2}}
+\end{equation}
+    
+\end{frame}
+
+\begin{frame}{Решение cMDS}
+    Таким образом, решение cMDS заключается в следующем:
+\begin{enumerate}
+    \item По матрице попарных расстояний $D$ восстанавливаем матрицу Грама $B$ (\ref{gram}).
+    \item Находим спектральное разложение матрицы $B$ (\ref{spectral}).
+    \item Восстанавливаем искомую конфигурацию $x_1,...,x_N$ (\ref{X}).
+\end{enumerate}
+
+\begin{itemize}
+
+\item cMDS --- базовый подход, предлагает эффективное аналитическое решение, без сложных оптимизационных задач.
+
+\item сMDS находит точное решение при поставленных требованиях, но не позволяет выбирать размерность $p$. Для произвольной размерности $d$ оставляем $d$ наибольших собственных значений.
+
+\item cMDS можно применять и при неевклидовой функции различия $d(x,y)$. Применяют и для решения задачи mMDS.
+
+\item cMDS не может быть применен в случае, когда множество пар $M$ не образует множество всевозможных пар (в матрице попарных различий пропуски).
+    
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Решение mMDS}
+
+В метрическом многомерном шкалировании нет столь строгих требований (как в cMDS) на заданные различия $d(x, y)$: $\{(i, j, d_{ij})\}_{(i, j) \in M},$ где $d_{ij} = d(\hat{x}_i, \hat{x}_j)$.
+
+\vspace{\baselineskip}  
+
+Большинство подходов метрического многомерного шкалирования сводится к оптимизации функционала стресса тем или иным методом.
+
+\vspace{\baselineskip}  
+
+Самый классический метод --- оптимизация градиентным спуском.
+
+\vspace{\baselineskip}  
+Популярный метод --- алгоритм оптимизации SMACOF. 
+    
+\end{frame}
+
+\begin{frame}{SMACOF}
+    SMACOF --- Scaling by MAjorizing a COmplicated Function.
+    
+    Предлагается оптимизировать стресс с весами (у пропущенных пар $w_{ij} = 0)$:
+    \begin{equation}
+    \label{smacof_stress}
+    Stress(x_1, ..., x_N) = \sum_{i, j=1}^N  w_{ij}(d_{ij} - || x_i - x_j ||)^2 \longrightarrow \min_{x_1, ..., x_N \in \mathbb{R}^d}
+\end{equation}
+
+Идея этого метода состоит в нахождении вариационной верхней оценки на функционал $Stress$ ($g(x, \xi)$ --- вариационная верхняя оценка функции $f(x)$, если $f(x) \leqslant g(x, \xi) \: \forall x \in X, \forall \xi \in Z$ и $\forall x \in X \: \exists \xi \in Z$, т.ч. $f(x) = g(x, \xi)$). 
+\vspace{\baselineskip} 
+
+Вместо оптимизации функционала $Stress$ (\ref{smacof_stress}) предлагается итерационно оптимизировать его вариационную верхнюю оценку. 
+\end{frame}
+
+\begin{frame}{Решение nMDS}
+
+Классический подход, предложенный Kruskal, работает с входными различиями $\delta_{ij}$. Вводится функционал стресса:
+\begin{equation}
+    \label{nmdsstress1}
+        S(x_1, ..., x_N) = \sqrt{\dfrac{\sum(f(\delta_{ij}) - ||x_i - x_j||)^2}{\sum ||x_i - x_j||^2}}, \: x_1, ..., x_N \in \mathbb{R}^d
+\end{equation}
+В такой постановке задачи требуется найти конфигурацию, минимизирующую функционал $S$, а также монотонную функцию $f$ такую, что $f(\delta_{ij}) \leqslant f(\delta_{kl})$ в случае $\delta_{ij} < \delta_{kl}$.
+\vspace{\baselineskip} 
+
+В общем случае нет точного решения. Суть задачи сводится к сохранению порядка на значениях функции различия.
+\vspace{\baselineskip} 
+
+Дополнительная трудность в нахождении $f$.
+    
+\end{frame}
+
+\begin{frame}{Решение nMDS}
+
+В классике проблему отыскания функции $f$ предлагается решить методами \textit{изотонической регрессии}: найти $\hat{d}_{ij}$ такие, что в случае $\delta_{i_1, j_1} \leqslant \delta_{i_2, j_2} \leqslant ... \leqslant \delta_{i_m, j_m}$ выполняется $\hat{d}_{i_1, j_1} \leqslant \hat{d}_{i_2, j_2} \leqslant ... \leqslant \hat{d}_{i_m, j_m}$. После этого вновь конструируется уже привычный функционал стресса:
+\begin{equation}
+    \label{nmdsstress2}
+        S(x_1, ..., x_N) = \sqrt{\dfrac{\sum(\hat{d}_{i, j} - ||x_i - x_j||)^2}{\sum ||x_i - x_j||^2}}, \: x_1, ..., x_N \in \mathbb{R}^d
+\end{equation}
+
+При масштабировании конфигурации в $k$ раз ($x_i \rightarrow k x_i$) различия, в том числе и $\hat{d}_{i, j}$, увеличатся в $k$ раз, а весь числитель под корнем в $k^2$ раз. Чтобы это скомпенсировать, добавляется нормировочный знаменатель.
+    
+\end{frame}
+
+\section{Предлагаемый подход}
+\begin{frame}{Описание подхода}
+Наша цель: предложить универсальную модель, в зависимости от модификации решающую задачи метрического и неметрического многомерного шкалирования, при этом допускающую расширения на случай разнородности данных.
+\vspace{\baselineskip} 
+
+За основу возьмем следующую модель:
+Пусть отображение объектов в целевое пространство $l_w: \{1, ..., N\} \to \mathbb{R}^d$ осуществляется одним полносвязным слоем нейронной сети с весами $w$. Для объекта с номером $i$ сеть будет хранить $d$ чисел --- веса, соответствующие $i$-му входу. 
+\vspace{\baselineskip} 
+
+Используем логику работы \textit{сиамских сетей}. 
+Представление, полученное сетью для $i$-го объекта, будем обозначать $l_w
+(i)$. Обучать сеть $l_w$ будем обратным распространением ошибки.
+\end{frame}
+
+\begin{frame}{Решение mMDS предлагаемым подходом}
+
+Для задачи \textit{метрического многомерного шкалирования} будем оптимизировать функцию потерь:
+\begin{equation}
+    L_{mMDS} = \sum_{(i, j) \in M} (d_{ij} - || l_w(i) - l_w(j) ||)^2
+\end{equation}
+    
+\end{frame}
+
+\begin{frame}{Решение nMDS предлагаемым подходом}
+
+В случае задачи \textit{неметрического многомерного шкалирования} отойдем от классической постановки функционала $Stress$ (Kruskal) к нашей постановке задачи (\ref{nmdsproblem}):
+$$
+            \forall \: (i, j), (k,l) \in M \; \; d_{ij} < d_{kl} \Longleftrightarrow ||x_i - x_j|| + m < ||x_k - x_l||
+$$
+
+В такой постановке задачи хорошо прослеживается суть --- сохранить отношение порядка на различиях. Мы предложим два подхода к решению задачи с использованием нашего полносвязного слоя $l_w$.
+    
+\end{frame}
+
+\begin{frame}{Triplet Loss}
+
+Рассмотрим понятие \textit{triplet loss}. Пусть по входным данным сформирована тройка --- точка интереса (anchor point), точка того же класса, что точка интереса (anchor-positive), точка другого класса (anchor-negative). Тогда triplet loss выглядит так:
+\begin{equation}
+\label{triplet}
+L = max(0, d_{ap} - d_{an} + m)
+\end{equation}
+
+Здесь $d_{ap}$ --- расстояние от представления anchor point до представления anchor-positive, $d_{ap}$ --- до представления anchor-negative соответственно, $m$ --- отступ, гарантирующий выполнение $|d_{ap} - d_{an}| \geq m$.
+\vspace{\baselineskip} 
+
+В нашей задаче отсутствуют метки anchor-positive и anchor-negative на объектах. Однако, мы можем использовать в качестве anchor-positive и anchor-negative для объекта с номером $i$ такие объекты с номерами $j$ и $k$ соответственно, что $d_{ij} < d_{ik}$.
+    
+\end{frame}
+
+\begin{frame}{Решение nMDS предлагаемым подходом}
+
+Таким образом, пусть пары $(i, j), (i, k) \in M$.
+\begin{equation}
+    L_{nMDS}(x_i, x_j, x_k) = \begin{cases}
+                max(0, ||x_i - x_j|| - ||x_i - x_k|| + m),&\text{если $d_{ij} < d_{ik}$}\\
+                max(0, ||x_i - x_k|| - ||x_i - x_j|| + m), &\text{если $d_{ik} < d_{ij}$}
+                        \end{cases}
+\end{equation}
+
+Тогда функция потерь будет выглядеть так:
+\begin{equation}
+    L_{nMDS} = \sum_{(i, j), (i, k) \in M} L_{nMDS}(l_w(i), l_w(j), l_w(k)) 
+\end{equation}
+    
+\end{frame}
+
+\begin{frame}{Решение nMDS предлагаемым подходом}
+
+Естественнее работать с четверками. 
+\vspace{\baselineskip} 
+
+В нашей постановке задачи: $
+            \forall \: (i, j), (k,l) \in M \; \; d_{ij} < d_{kl} \Longleftrightarrow ||x_i - x_j|| + m < ||x_k - x_l||
+            \Longleftrightarrow ||x_i - x_j|| - ||x_k - x_l||+ m < 0 
+$
+\vspace{\baselineskip} 
+
+Отсюда приходим к идее quadruplet loss.
+\vspace{\baselineskip} 
+
+Пусть пары $(i, j), (k, l) \in M$.
+\begin{equation}
+    L_{nMDS}(x_i, x_j, x_k, x_l) = \begin{cases}
+                max(0, ||x_i - x_j|| - ||x_k - x_l|| + m),& d_{ij} < d_{kl}\\
+                max(0, ||x_i - x_k|| - ||x_k - x_l|| + m), & d_{kl} < d_{ij}
+                        \end{cases}
+\end{equation}
+
+Тогда функция потерь будет выглядеть так:
+\begin{equation}
+    L_{nMDS} = \sum_{(i, j), (k, \hat{l}) \in M} L_{nMDS}(l_w(i), l_w(j), l_w(k), l_w(\hat{l})) 
+\end{equation}
+    
+\end{frame}
+
+\begin{frame}{Сравнительный анализ предлагаемого подхода}
+
+Как оценивать качество построенной конфигурации $x_1, ..., x_N$?
+\vspace{\baselineskip} 
+
+Исторический, ключевой функционал качества --- величина нормированного стресса. Мы предлагаем для mMDS  нормировать на $\sum d_{ij}^2$, Kruskal для nMDS предлагает нормировать на $\sum ||x_i - x_j||^2$ (Kruskal Stress).
+\vspace{\baselineskip} 
+
+Мы предлагаем дополнительно использовать ранговую корреляцию Спирмена --- показатель того, насколько хорошо сохраняется порядок на различиях.
+\vspace{\baselineskip} 
+
+Третий путь --- смотреть на показатели прикладной области.
+
+\end{frame}
+
+\begin{frame}{Сравнительный анализ предлагаемого подхода}
+Параметры эксперимента:
+
+    Реализация на PyTorch. Оптимизация Adam.
+    
+    Сгенерирован набор данных $\hat{x}_1, ..., \hat{x}_N \in \real^{D}$ при $N=100, D=3$. 
+    
+    Функция различия $d(\hat{x}_i, \hat{x}_j) = \rho_E (\hat{x}_i, \hat{x}_j)$ --- евклидово расстояние.
+    
+    Размерность искомой конфигурации $d=2, 3$.
+    
+    \vspace{\baselineskip} 
+    \textit{Решение задачи метрического многомерного шкалирования:}
+    
+    
+\begin{table}[h]
+
+\scalebox{0.9}{
+\begin{tabular}{|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{Размерность конфигурации d = 3} \\
+\hline
+Метод & Stress & Корреляция\\
+\hline
+cMDS & $10^{-16}$ & 1.0 \\
+\hline
+SMACOF & $10^{-3}$ & ~1.0 \\
+\hline
+mMDS & $10^{-3}$ & ~1.0 \\
+\hline
+\end{tabular}
+}
+\quad
+\scalebox{0.9}{
+\begin{tabular}{|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{Размерность конфигурации d = 2} \\
+\hline
+Метод & Stress & Корреляция\\
+\hline
+cMDS & $0.277$ & 0.811 \\
+\hline
+SMACOF & $0.218$ & 0.849 \\
+\hline
+mMDS & $0.222$ & 0.845 \\
+\hline
+\end{tabular}
+}
+\end{table}
+\end{frame}
+
+\begin{frame}{Сравнительный анализ предлагаемого подхода}
+Параметры эксперимента:
+
+    Реализация на PyTorch.
+    
+    Сгенерирован набор данных $\hat{x}_1, ..., \hat{x}_N \in \real^{D}$ при $N=100, D=3$. 
+    
+    Функция различия $d(\hat{x}_i, \hat{x}_j) = \rho_E (\hat{x}_i, \hat{x}_j)$ --- евклидово расстояние.
+    
+    Размерность искомой конфигурации $d=2$.
+    
+    \vspace{\baselineskip} 
+    \textit{Решение задачи неметрического многомерного шкалирования:}
+    
+    
+\begin{table}[h!]
+\begin{center}
+\scalebox{0.9}{
+\begin{tabular}{|c|c|c|}
+\hline
+\multicolumn{3}{|c|}{Размерность конфигурации d = 2} \\
+\hline
+Метод & Kruskal Stress & Корреляция\\
+\hline
+cMDS & $0.221$ & 0.811 \\
+\hline
+sklearn nMDS & $20.953$ & 0.017 \\
+\hline
+triplet nMDS & $31.482$ & 0.848 \\
+\hline
+quadruplet nMDS & $40.321$ & 0.851 \\
+\hline
+\end{tabular}
+}
+\end{center}
+\end{table}
+
+Kruskal Stress здесь сторонний показатель, мы оптимизировали не его, показательна корреляция.
+
+\vspace{\baselineskip} 
+По времени работы: mMDS вышел на корреляцию 0.8 за 10 минут, triplet nMDS за 10 секунд.
+\end{frame}
+
+\section{Векторные представления слов}
+
+\begin{frame}{Задача построения векторных представлений слов}
+ Будем работать со словами естественного языка. Пусть задан \textit{словарь} $V$ --- множество слов. 
+ \vspace{\baselineskip} 
+ 
+ Задача построения векторных представлений заключается в нахождении и сопоставлении конфигурации $x_1, ..., x_N \in \mathbb{R}^d$ всем словам из словаря $V$ таким образом, что $x_1, ..., x_N$ отвечают некоторым критериям качества. 
+ \vspace{\baselineskip} 
+ 
+ Найденные векторы $x_i$ конфигурации будем называть \textit{векторными представлениями слов}.   
+\end{frame}
+
+\begin{frame}{Оценивание векторных представлений слов}
+
+Что считать критериями качества? Как оценивать построенные векторные представления?
+\vspace{\baselineskip} 
+
+Методы оценивания поделим на два класса:
+\begin{enumerate}
+    \item \textit{Внешнее оценивание (extrinsic evaluation)}
+    \vspace{\baselineskip} 
+    
+    Оцениваем при решении <<внешних>> задач с помощью сторонних методов машинного обучения и обработки естественного языка.
+    
+    Например, используем представления в решении задачи анализа тональности текста или задачи частеречной разметки.
+    \vspace{\baselineskip} 
+    
+    \item \textit{Внутреннее оценивание (intrinsic evaluation)}
+    \vspace{\baselineskip} 
+    
+    Оцениваем вне контекста задач обработки естественного языка. Часто опираются на представления людей о взаимосвязах слов.
+\end{enumerate}
+
+\vspace{\baselineskip} 
+Остановимся на внутреннем оценивании.
+    
+\end{frame}
+
+\begin{frame}{Оценивание векторных представлений слов}
+
+При внутреннем оценивании принято выделять три показателя:
+
+\begin{itemize}
+    \item Сохранение семантической близости.
+    \item Сохранение аналогий.
+    \item Категоризация.
+\end{itemize}
+
+\vspace{\baselineskip}
+Разберем каждый из них.
+    
+\end{frame}
+
+\begin{frame}{Семантическая близость}
+
+Неформально, свойство семантической близости --- близость в математическом смысле у векторных представлений для близких по смыслу слов.
+
+\vspace{\baselineskip}
+
+Как определять близость слов по смыслу?
+
+Принято выделять два понятия:
+\begin{itemize}
+    \item Близость в смысле сходства, похожести сущностей, которые эти слова описывают (similarity)
+    \item Близость в смысле связанности сущностей, которые слова описывают (relatedness)
+\end{itemize}
+
+\vspace{\baselineskip}
+
+Слова car и crash не похожи, но связаны. Слова car и train похожи, описывают близкие сущности. Слова Freud и psychology не похожи, но связаны.
+    
+\end{frame}
+
+\begin{frame}{Сохранение аналогии}
+
+Основная идея свойства сохранении аналогий (word analogy task): 
+
+Задаются два связанных слова $a$ и $b$, и некоторое другое слово $c$. 
+\vspace{\baselineskip}
+
+По полученным представлениям тем или иным образом строится новое слово $d$, связанное с $c$ также, как $a$ связано с $b$. Сохранение аналогий ---  способность по векторным представлениям строить слова <<по аналогии>>. 
+\vspace{\baselineskip}
+
+Например, если задать в качестве слова $a=$ <<man>>, а слова $b=$ <<woman>>, то для слова $c=$ <<uncle>> естественно ожидать построения слова <<aunt>>.
+    
+\end{frame}
+
+\begin{frame}{Категоризация}
+
+Задан некоторый набор данных, состоящий из $M$ слов и $K$ кластеров (заведомо дано разбиение по кластерам). 
+
+\vspace{\baselineskip}
+Идея состоит в попытке восстановить некоторым алгоритмом кластеризации эти кластеры, но в пространстве векторных представлений слов.
+
+\vspace{\baselineskip}
+Оценкой качества служит среднее или суммарное расстояние между восстановлеными кластерами и заданными.
+    
+\end{frame}
+
+\begin{frame}{Оценивание свойства семантической близости}
+
+Обычно выполнение свойства семантической близости проверяют с помощью заранее размеченных экспертами наборов данных --- <<золотых стандартов>> семантической близости. Общий подход построения таких наборов --- оценить семантическую близость на парах слов, например, усредняя мнение экспертов. 
+\vspace{\baselineskip}
+
+Пусть известны степени семантической близости на парах слов $M$: $\{(i, j, s_{ij})\}_{(i, j) \in M}$. 
+Два пути: определить функцию близости $s(x, y)$ (часто косинусная близость) на построенных векторных представлениях, либо преобразовать близости $s_{ij}$ в различия $d_{ij}$.
+\vspace{\baselineskip}
+
+Переходим к рангам в вариационных рядах и вычисляем коэффициент корреляции Спирмена:
+
+\begin{equation}
+    \label{spearman}
+    \rho = 1 - \dfrac{6}{n(n-1)(n+1)} \sum_{k = 1}^{|M|} (R_k - S_k)^2,
+\end{equation}
+где $R_k, S_k$ - ранги $s_{ij}$ и $s(x_i, x_j)$ ($d_{ij}$ и $d(x_i, x_j)$) в соответствующих вариационных рядах.
+    
+\end{frame}
+
+\begin{frame}{Анализ <<золотых стандартов>> семантической близости}
+
+Выбрано три самых популярных <<золотых стандарта>>.
+\begin{table}[h]
+\begin{center}
+\scalebox{0.7}{
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Название & Язык & Количество пар & Диапазон оценки & Значения оценки \\
+\hline
+WordSim353 & Английский &  353 & [0; 10] & Вещественные \\
+\hline
+SimLex-999 & Английский & 999 & [0; 10] & Вещественные \\
+\hline
+The MEN Test Collection & Английский & 3000 & [0; 50] & Целые \\
+\hline
+\end{tabular}
+}
+\end{center}
+\caption{\label{tab:sim_1}Общие характеристики <<золотых стандартов>>.}
+\end{table}
+
+\begin{table}[h]
+\begin{center}
+\scalebox{0.6}{
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Название & Что оценивалось? & Число разметчиков & Распределение по частям речи \\
+\hline
+WordSim353 & Relatedness &  13 на 153 пары/16 на 200 пар & 100\% n \\
+\hline
+The MEN Test Collection & Relatedness & 1 на каждую пару & 81.5\% n + 12.76\% j + 5.73\% v \\
+\hline
+SimLex-999 & Similarity & 500 & 66.6\% n + 11.1\% j + 22.2\% v \\
+\hline
+\end{tabular}
+}
+\end{center}
+\caption{\label{tab:sim_2} Особенности <<золотых стандартов>>.}
+\end{table}
+
+\end{frame}
+
+\begin{frame}{Преимущества и недостатки <<золотых стандартов>>}
+
+\begin{enumerate}
+    \item WordSim353
+    \begin{itemize}
+        \item Только существительные.
+        \item Экспертам не объяснялась разница между similar и related.
+        \item Словарь больше числа пар (437 слов при 351 паре)
+    \end{itemize}
+    \item SimLex999
+    \begin{itemize}
+        \item Нет пар из слов разных частей речи.
+        \item Много слов встречаются только в одной паре.
+        \item Слишком большой словарь (1028 слов при 998 парах)
+        \item Экспертам объяснялась разница между similar и related.
+    \end{itemize}
+    \item MEN
+     \begin{itemize}
+        \item Много пар, небольшой словарь (751 слово при 3000 пар)
+        \item Редки слова, которые встречаются только в одной паре.
+        \item Есть пары из слов разных частей речи.
+         \item Экспертам не объяснялась разница между similar и related.
+     \end{itemize}
+\end{enumerate}
+
+Для работы с <<золотыми стандартами>> реализована небольшая библиотека на Python.
+\end{frame}
+
+\begin{frame}{Задача аналогии}
+
+\textit{Задачей аналогии} будем называть следующую задачу:
+
+По известной аналогии $a:a' :: b:b'$ строится тройка $a:a' :: b$.
+
+Требуется по векторным представлениям $x_1, ..., x_N$ слов словаря $V$ для тройки слов $a:a' :: b$ найти слово $\beta \in V$ так, что четверка $a:a' :: b:\beta$ образует известную аналогию, то есть $\beta = b'$.
+\vspace{\baselineskip}
+
+Обычно задается набор аналогий $A$, а качество векторных представлений оценивается как точность  --- доля верно решенных задач аналогии.
+    
+\end{frame}
+
+\begin{frame}{Решение задачи аналогии}
+
+Как находить слово $b'$? Как решать задачу аналогии?
+\vspace{\baselineskip}
+
+Определим косинус между двумя векторами (косинусная близость) как $\cos(x,y) = \frac{\langle x, y\rangle}{||x|| || y ||}$. Далее будем понимать под $a$ векторное представление $x(a)$ соответствующего слова.
+\vspace{\baselineskip}
+
+Однозначного способа решать задачу аналогии не существует. Рассмотрим основные подходы:
+
+\begin{itemize}
+    \item Подход \textit{3CosAdd} рассматривает аналогию как параллелограмм:
+    \begin{equation}
+    \label{3cosadd}
+        b' = \arg \max_{\beta \in V} \cos(\beta, b + a - a')
+    \end{equation}
+    \item Аналогично \textit{PairDistance}:
+    \begin{equation}
+        b' = \arg \max_{\beta \in V} \cos(\beta - b, a' - a)
+    \end{equation}
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Решение задачи аналогии}
+\begin{itemize}
+\item Подход \textit{3CosMul} предлагает в предположении нормированности векторов воспользоваться линейностью скалярного произведения $\cos(\beta, b + a - a') = \cos(\beta, b) + \cos(\beta, a) - \cos(\beta, a')$, а затем перейти от сложения к умножению:
+    \begin{equation}
+        b' = \arg \max_{\beta \in V} \dfrac{ \cos(\beta, b)\cos(\beta, a')}{\cos(\beta, a) + \epsilon}
+    \end{equation}
+    \item Подход \textit{3CosAvg} предлагает по всему набору аналогий $A$ найти средний сдвиг $s = \frac{\sum_{i = 0}^m a}{m} - \frac{\sum_{i = 0}^n a'}{n}$, а затем добавить его к $b$:
+    \begin{equation}
+        b' = \arg \max_{\beta \in V} \cos(\beta, b + s)
+    \end{equation}
+    Утверждается, что такой базовый подход повышает устойчивость к шуму в векторных представлениях, кроме помогает решать задачу аналогии в моделях с полисемией (учитывается несколько смыслов у слов).
+\end{itemize}    
+\end{frame}
+
+\begin{frame}{Решение задачи аналогии}
+\begin{itemize}
+\item Подход \textit{LRCos} предполагает некоторую структуру в наборе аналогий $A$. 
+\vspace{\baselineskip}
+
+Например, для аналогии France : Paris :: Japan : Tokyo естественно считать слова $a, b$ принадлежащими исходному классу $source$ --- страны, а слова $a', b'$ целевому $target$ --- столицы. 
+\vspace{\baselineskip}
+
+Идея: переформулируем вопрос <<Что связано с Францией так же, как Токио связано с Японией?>> в <<Какое слово лежит в том же классе, что Токио, и ближайшее к слову Франция?>>.
+\vspace{\baselineskip}
+
+Предлагается обучить логистическую регрессию для распознавания слов целевого класса --- в обучающую выборку для одного класса попадают все слова из $target$, для второго класса все слова из $source$ и прочие случайные слова. Окончательно вектор $b'$ находится следующим образом:
+    \begin{equation}
+        b' = \arg \max_{\beta \in V} P(\beta \in target) \cos(\beta, b)
+    \end{equation}    
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}{<<Золотые стандарты>> аналогий}
+
+Аналогично <<золотым стандартам>> семантической близости существуют общепринятые наборы аналогий $A$. Перечислим основные:
+    \begin{enumerate}
+        \item Google Analogy.
+        Это самый классический большой набор аналогий из 19000 четверок. Типы связи в аналогиях: страны и столицы, валюты, морфология (формы слов).
+        \item MSR.
+        Набор из 8000 четверок, тип связи: морфология.
+        \item BATS. Самый современный и совершенный набор аналогий. Структурирован в формате пар  ($source$, $target$). Сбалансирован, содержит связи следующих типов: морфология, энциклопедическая семантика (страны --- столицы, вещи --- цвета, мужское --- женское, животные --- жилища и т.д.), лексикографическая семантика (антонимы, несколько классов синонимов, гиперонимы, меронимы и т.д.)
+    \end{enumerate}
+    
+\end{frame}
+
+\begin{frame}{Построение векторных представлений на основе <<золотых стандартов>> семантической близости и аналогий.}
+    \textit{Дано}: размеченные экспертами наборы семантической близости на парах слов $M$: $\{s_{ij}\}, \: (i,j) \in M$, набор аналогий $A$, словари наборов пересекаются. 
+\vspace{\baselineskip}
+
+\textit{Задача}: предложить способ построения векторных представлений слов методами многомерного шкалирования.
+\end{frame}
+
+\begin{frame}{Построение векторных представлений на основе <<золотых стандартов>> семантической близости и аналогий.}
+
+Набор экспертных близостей $\{s_{ij}\}$ преобразуем в различия $\{d_{ij}\}$. Будем использовать предложенную нами модель, реализующую метрическое и неметрическое многомерное шкалирование с помощью полносвязной однослойной нейронной сети $l_{w}$.
+\vspace{\baselineskip}
+
+Таким образом, используя функцию потерь:
+\begin{equation}
+    L_{mMDS} = (d_{ij} - || l_w(i) - l_w(j) ||)^2
+\end{equation}
+в случае метрического, и функцию потерь quadruplet loss:
+\begin{equation}
+    L_{nMDS} = 
+                max(0, ||l_w(i) - l_w(j)|| - ||l_w(k) - l_w(\hat{l})|| + m), \text{при} \: d_{ik} < d_{kl}
+\end{equation}
+в случае неметрического многомерного шкалирования можем решать задачу нахождения векторных представлений по семантическим близостям.
+    
+\end{frame}
+
+\begin{frame}{Построение векторных представлений на основе <<золотых стандартов>> семантической близости и аналогий.}
+\vspace{\baselineskip}
+
+Для привлечения наборов аналогий естественно усовершенствовать модель, уже работающую с четверками. 
+\vspace{\baselineskip}
+
+Необходимо сконструировать функцию потерь на четверке векторных представлений, при этом про отвечающие им слова известно, что они образуют аналогию. 
+
+Обратимся к подходу \textit{PairDistance}: 
+        $b' = \arg \max_{\beta \in V} \cos(\beta - b, a' - a)$. Продолжая логику подхода естественно считать, что на четверке аналогии $a:a' :: b:b'$ достигается максимум расматриваемой косинусной близости: $\cos(b'-b,a'-a) \approx 1$. Отсюда получаем функцию потерь:
+\begin{equation}
+    L_{analogy} = - \cos(l_w(i_{b'}) - l_w(i_b), l_w(i_{a'}) - l_w(i_a))
+\end{equation}
+Тогда искомый способ построения векторных построений заключается в нахождении конфигурации  $x_1, ..., x_N$ путем минимизации функции потерь:
+\begin{equation}
+    L = \sum_{\substack{(i, j), (k, l) \in M \\ (i, j, k, l) \in A}} (L_{nMDS} + L_{analogy})
+\end{equation}
+    
+\end{frame}
+
+\begin{frame}{Сравнительный анализ полученного решения}
+
+В качестве набора семантической близости $\{s_{ij}\}$ выбран MEN, как набор с наиболее удачным соотношением размера словаря и числа пар слов. Дополнительно, в нем есть пары разных частей речи.
+\vspace{\baselineskip}
+
+В качестве набора аналогий $A$ выбран BATS, в нем большое разнообразие типов связи, есть большое пересечение словаря с MEN (словари остальных наборов аналогий почти не пересекаются со словарями наборов семантических близостей).
+\vspace{\baselineskip}
+
+Аналогии решаем методом PairDistance.
+Реализация на PyTorch. Оптимизация Adam.
+
+Целевая размерность представлений $d=2$.
+
+\end{frame}
+
+\begin{frame}{Сравнительный анализ полученного решения}
+\begin{table}[h]
+\begin{center}
+\scalebox{0.6}{
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+Метод & Stress & Корреляция с MEN & Корреляция с WordSim353 & Корреляция с SimLex-999 & Точность на BATS \\
+\hline
+mMDS & 0.19 & 0.90 & 0.38 & 0.23 & 7.7\% \\
+\hline
+nMDS + analogy & 0.24 & 0.88 & 0.37 & 0.21 & 15.5\% \\
+\hline
+\end{tabular}
+}
+\end{center}
+\end{table}
+
+Диапазоны значений показателей у <<взрослых>> методов построения по большим корпусам текстов:
+
+У word2vec в зависимости от размерности представлений и входных данных на wordsim порядка 0.6-0.7, на simlex порядка 0.2-0.3.
+
+BATS --- <<сложный>> набор для методов построения векторных представлений. В зависимости от типа связи, размерности и входных данных корреляция колеблется от нескольких долей процента до 80-90\%.
+
+\vspace{\baselineskip}
+
+Полученные оценки смещены! Они вычисляются не на полных наборах данных, а только на словах, которые есть в MEN.
+
+\vspace{\baselineskip}
+
+Правильнее будет смотреть на изменение корреляции с MEN и точности на BATS.
+
+
+\end{frame}
+
+\begin{frame}{Визуализация}
+    \begin{center}
+    \includegraphics[width=0.75\textwidth]{d2.png}
+    \end{center}
+    
+    Удачный пример: кластер слов swimming - lake - river - sea - beach - coast - water - boat - ship
+    
+    Нудачный пример: соседние слова tram - jewelry - panda - kiss
+\end{frame}
+
+\begin{frame}{Возможные улучшения предложенного решения}
+
+\begin{itemize}
+    \item В данных могут быть <<висячие вершины>>  --- слова, которые встречаются только в одной паре. В MEN из 700 слов словаря таких слов 42. Очевидно, представление для таких слов можно достраивать отдельно (подойдет любая точка на сфере нужного радиуса).
+    
+    \item Проблема предложенного подхода --- слишком много пропусков в наборах семантической близости. Можно решить, если предложить способ построения близостей (различий) по корпусам текстов.
+
+    \end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Результаты}
+
+\begin{itemize}
+    \item Были введены основные понятия и сформулированы задачи многомерного шкалирования. Проведен обзор существующих подходов к решению сформулированных задач.
+    \item Разработан и реализован подход к решению задач метрического и неметрического шкалирования. Проведен сравнительный анализ с существующими подходами.
+    \item Рассмотрена задача построения векторных представлений слов. Проведен обзор методов оценивания векторных представлений. Для работы с <<золотыми стандартами>> разработана и реализована библиотека на Python.
+    \item Проведен обзор методов решения задачи аналогий. 
+    \item Разработан и реализован подход к построению векторных представлений слов на основе <<золотых стандартов>> семантической близости и аналогий.
+\end{itemize}
+    
+\end{frame}
+
+
+
+
+\end{document} 
